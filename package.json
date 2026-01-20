@@ -1,0 +1,135 @@
+{
+  "name": "secure-sftp",
+  "displayName": "Secure SFTP",
+  "description": "Secure SFTP file transfer for VS Code with modern security practices",
+  "version": "0.1.0",
+  "publisher": "secure-sftp",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "sftp",
+    "ssh",
+    "ftp",
+    "upload",
+    "remote",
+    "sync",
+    "secure"
+  ],
+  "activationEvents": [
+    "onCommand:secureSftp.connect",
+    "onCommand:secureSftp.disconnect",
+    "onCommand:secureSftp.uploadFile",
+    "onCommand:secureSftp.downloadFile",
+    "onCommand:secureSftp.sync",
+    "onCommand:secureSftp.setPassword",
+    "onCommand:secureSftp.clearCredentials"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "secureSftp.connect",
+        "title": "Secure SFTP: Connect to Server"
+      },
+      {
+        "command": "secureSftp.disconnect",
+        "title": "Secure SFTP: Disconnect"
+      },
+      {
+        "command": "secureSftp.uploadFile",
+        "title": "Secure SFTP: Upload Current File"
+      },
+      {
+        "command": "secureSftp.downloadFile",
+        "title": "Secure SFTP: Download File"
+      },
+      {
+        "command": "secureSftp.sync",
+        "title": "Secure SFTP: Sync Folders"
+      },
+      {
+        "command": "secureSftp.setPassword",
+        "title": "Secure SFTP: Store Credentials"
+      },
+      {
+        "command": "secureSftp.clearCredentials",
+        "title": "Secure SFTP: Clear Stored Credentials"
+      }
+    ],
+    "configuration": {
+      "title": "Secure SFTP",
+      "properties": {
+        "secureSftp.configs": {
+          "type": "array",
+          "default": [],
+          "description": "SFTP server configurations (credentials stored separately in OS keychain)"
+        },
+        "secureSftp.strictHostKeyChecking": {
+          "type": "boolean",
+          "default": true,
+          "description": "Verify server host keys (STRONGLY recommended for security)"
+        },
+        "secureSftp.logLevel": {
+          "type": "string",
+          "enum": [
+            "error",
+            "warn",
+            "info",
+            "debug"
+          ],
+          "default": "info",
+          "description": "Log level (sensitive data is NEVER logged at any level)"
+        },
+        "secureSftp.uploadOnSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically upload files when saved"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "lint:fix": "eslint src --ext ts --fix",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\"",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "prepare": "husky install"
+  },
+  "dependencies": {
+    "ssh2": "^1.15.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/ssh2": "^1.15.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0",
+    "@vitest/coverage-v8": "^1.2.0",
+    "eslint": "^8.56.0",
+    "eslint-plugin-security": "^2.1.0",
+    "husky": "^8.0.3",
+    "prettier": "^3.2.4",
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/secure-sftp-vscode.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yourusername/secure-sftp-vscode/issues"
+  },
+  "homepage": "https://github.com/yourusername/secure-sftp-vscode#readme"
+}
