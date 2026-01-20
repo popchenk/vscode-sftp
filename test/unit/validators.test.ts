@@ -29,6 +29,13 @@ describe('Host Validation', () => {
         expect(isValidHost('::1')).toBe(false);
     });
 
+    test('allows localhost when explicitly enabled', () => {
+        expect(isValidHost('localhost', { allowLocalhost: true })).toBe(true);
+        expect(isValidHost('127.0.0.1', { allowLocalhost: true })).toBe(true);
+        expect(isValidHost('127.0.0.2', { allowLocalhost: true })).toBe(true);
+        expect(isValidHost('::1', { allowLocalhost: true })).toBe(true);
+    });
+
     test('blocks private IP ranges', () => {
         expect(isValidHost('10.0.0.1')).toBe(false);
         expect(isValidHost('192.168.1.1')).toBe(false);

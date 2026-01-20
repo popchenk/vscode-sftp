@@ -10,6 +10,7 @@ export interface GlobalSettings {
     strictHostKeyChecking: boolean;
     logLevel: LogLevel;
     uploadOnSave: boolean;
+    allowLocalhost: boolean;
 }
 
 export class ConfigManager {
@@ -29,6 +30,7 @@ export class ConfigManager {
             strictHostKeyChecking: true,
             logLevel: config.get<LogLevel>('logLevel', 'info'),
             uploadOnSave: config.get<boolean>('uploadOnSave', false),
+            allowLocalhost: config.get<boolean>('allowLocalhost', false),
         };
     }
 
@@ -83,12 +85,13 @@ export class ConfigManager {
     }
 
     private isValidConfig(config: SFTPConfig): boolean {
+        const settings = this.getGlobalSettings();
         if (!config.name || typeof config.name !== 'string') {
             this.logger.warn('SFTP config missing name');
             return false;
         }
 
-        if (!isValidHost(config.host)) {
+        if (!isValidHost(config.host, { allowLocalhost: settings.allowLocalhost })) {
             this.logger.warn(`Invalid host in config "${config.name}"`);
             return false;
         }

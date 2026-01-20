@@ -5,7 +5,10 @@ import { SSHConfig, SSHAlgorithms } from '../types';
  * Validates that a hostname is valid and not attempting SSRF.
  * Blocks localhost, private IPs, and invalid formats.
  */
-export function isValidHost(host: string): boolean {
+export function isValidHost(
+    host: string,
+    options: { allowLocalhost?: boolean } = {}
+): boolean {
     if (!host || typeof host !== 'string') {
         return false;
     }
@@ -24,7 +27,7 @@ export function isValidHost(host: string): boolean {
         lowercased === '::1' ||
         lowercased.startsWith('127.')
     ) {
-        return false;
+        return Boolean(options.allowLocalhost);
     }
 
     // Block private IP ranges (basic check)
@@ -159,9 +162,12 @@ const WEAK_HMAC_ALGORITHMS = [
 /**
  * Validates SSH configuration and rejects weak algorithms.
  */
-export function validateSSHConfig(config: SSHConfig): void {
+export function validateSSHConfig(
+    config: SSHConfig,
+    options: { allowLocalhost?: boolean } = {}
+): void {
     // Validate host
-    if (!isValidHost(config.host)) {
+    if (!isValidHost(config.host, options)) {
         throw new Error(`Invalid host: ${config.host}`);
     }
 

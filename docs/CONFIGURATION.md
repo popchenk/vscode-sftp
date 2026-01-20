@@ -36,6 +36,9 @@ Boolean. Default: `false`. When enabled, the extension uploads the saved file to
 - Prefer configs with `uploadOnSave: true`
 - Otherwise use the first config if `secureSftp.uploadOnSave` is enabled
 
+### `secureSftp.allowLocalhost`
+Boolean. Default: `false`. Allow `localhost/127.0.0.1` hosts for development only.
+
 ## Per-Config Fields
 
 ### Required
@@ -60,3 +63,4 @@ Strict host key checking is always enforced. Any `strictHostKeyChecking` setting
 
 Use the command `Secure SFTP: Store Credentials` to store passwords or private key passphrases.
 Credentials are never stored in settings or workspace files.
+For passphrase-only storage, use `Secure SFTP: Store Private Key Passphrase`.

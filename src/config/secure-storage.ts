@@ -62,6 +62,22 @@ export class SecureStorage {
     }
 
     /**
+     * Store only a private key passphrase (private key stored on disk).
+     */
+    async storePassphrase(host: string, username: string, passphrase: string): Promise<void> {
+        const key = this.getStorageKey(host, username);
+
+        try {
+            const credentials: Credentials = { passphrase };
+            await this.secrets.store(key, JSON.stringify(credentials));
+            this.logger.info(`Stored passphrase for ${username}@${host}`);
+        } catch (error) {
+            this.logger.error(`Failed to store passphrase for ${username}@${host}`, error as Error);
+            throw new Error('Failed to store passphrase securely');
+        }
+    }
+
+    /**
      * Retrieve credentials for a host/username combination.
      * Returns undefined if no credentials are stored.
      */

@@ -28,6 +28,7 @@
     "onCommand:secureSftp.sync",
     "onCommand:secureSftp.configure",
     "onCommand:secureSftp.setPassword",
+    "onCommand:secureSftp.setPassphrase",
     "onCommand:secureSftp.clearCredentials",
     "onCommand:secureSftp.viewHostKeys"
   ],
@@ -67,6 +68,10 @@
         "title": "Secure SFTP: Store Credentials"
       },
       {
+        "command": "secureSftp.setPassphrase",
+        "title": "Secure SFTP: Store Private Key Passphrase"
+      },
+      {
         "command": "secureSftp.clearCredentials",
         "title": "Secure SFTP: Clear Stored Credentials"
       },
@@ -93,6 +98,11 @@
           ],
           "default": "info",
           "description": "Log level (sensitive data is NEVER logged at any level)"
+        },
+        "secureSftp.allowLocalhost": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow localhost/127.0.0.1 connections for development only"
         },
         "secureSftp.uploadOnSave": {
           "type": "boolean",

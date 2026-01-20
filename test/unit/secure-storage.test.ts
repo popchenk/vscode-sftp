@@ -59,4 +59,20 @@ describe('SecureStorage', () => {
         const hasCredentials = await storage.hasCredentials('example.com', 'user');
         expect(hasCredentials).toBe(true);
     });
+
+    test('stores passphrase only', async () => {
+        const secrets = {
+            store: vi.fn(async () => undefined),
+            get: vi.fn(async () => JSON.stringify({ passphrase: 'pass' })),
+            delete: vi.fn(async () => undefined),
+        };
+
+        const storage = new SecureStorage(secrets as any);
+        await storage.storePassphrase('example.com', 'user', 'pass');
+
+        expect(secrets.store).toHaveBeenCalledWith(
+            'secure-sftp.example.com.user',
+            JSON.stringify({ passphrase: 'pass' })
+        );
+    });
 });

@@ -29,7 +29,10 @@ export class SSHManager {
         return `${config.username}@${config.host}:${config.port}`;
     }
 
-    async connect(config: SFTPConfig): Promise<Client> {
+    async connect(
+        config: SFTPConfig,
+        options: { allowLocalhost?: boolean } = {}
+    ): Promise<Client> {
         const connectionId = this.getConnectionId(config);
         const existing = this.connections.get(connectionId);
         if (existing) {
@@ -43,7 +46,7 @@ export class SSHManager {
             algorithms: config.algorithms,
             strictHostKeyChecking: config.strictHostKeyChecking,
         });
-        validateSSHConfig(sshConfig);
+        validateSSHConfig(sshConfig, { allowLocalhost: options.allowLocalhost });
 
         const credentials = await this.secureStorage.getCredentials(config.host, config.username);
         const connectConfig = await this.buildConnectConfig(config, sshConfig, credentials);
@@ -109,7 +112,7 @@ export class SSHManager {
                     hostKeyCheck.key
                 );
                 if (accepted) {
-                    return this.connect(config);
+                    return this.connect(config, options);
                 }
             }
 

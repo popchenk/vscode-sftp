@@ -74,6 +74,12 @@ Secure SFTP: Store Credentials
 
 Enter your password when prompted. It will be encrypted and stored in your OS keychain.
 
+For passphrase-protected private keys, use:
+
+```
+Secure SFTP: Store Private Key Passphrase
+```
+
 ### 3. Connect and Upload
 
 - **Connect**: `Secure SFTP: Connect to Server`
@@ -114,6 +120,7 @@ Enter your password when prompted. It will be encrypted and stored in your OS ke
 - `secureSftp.strictHostKeyChecking`: Verify server host keys (default: `true`, **strongly recommended**)
 - `secureSftp.logLevel`: Log level - `error`, `warn`, `info`, `debug` (default: `info`)
 - `secureSftp.uploadOnSave`: Automatically upload files when saved (default: `false`)
+- `secureSftp.allowLocalhost`: Allow localhost connections for development (default: `false`)
 
 ## Security
 

@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { ConfigManager } from './config/config-manager';
+import { ConfigManager, GlobalSettings } from './config/config-manager';
 import { HostKeyManager } from './config/host-key-manager';
 import { SecureStorage } from './config/secure-storage';
 import { SFTPClient } from './core/sftp-client';
@@ -22,6 +22,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
     const configManager = new ConfigManager();
     const logger = getLogger();
+    const getSettings = (): GlobalSettings => configManager.getGlobalSettings();
 
     const secureStorage = new SecureStorage(context.secrets);
     const hostKeyManager = new HostKeyManager(context);
@@ -40,7 +41,8 @@ export function activate(context: vscode.ExtensionContext): void {
         }
 
         try {
-            await manager.connect(config);
+            const settings = getSettings();
+            await manager.connect(config, { allowLocalhost: settings.allowLocalhost });
             updateStatus('connected', config);
             void vscode.window.showInformationMessage(
                 `Secure SFTP connected to ${config.host}:${config.port}`
@@ -106,6 +108,36 @@ export function activate(context: vscode.ExtensionContext): void {
         }
     );
 
+    const setPassphraseCommand = vscode.commands.registerCommand(
+        'secureSftp.setPassphrase',
+        async () => {
+            const config = await configManager.pickConfig();
+            if (!config) {
+                return;
+            }
+
+            const passphrase = await vscode.window.showInputBox({
+                prompt: `Enter passphrase for ${config.username}@${config.host}`,
+                password: true,
+                ignoreFocusOut: true,
+            });
+
+            if (!passphrase) {
+                return;
+            }
+
+            try {
+                await secureStorage.storePassphrase(config.host, config.username, passphrase);
+                void vscode.window.showInformationMessage(
+                    `Secure SFTP stored passphrase for ${config.username}@${config.host}`
+                );
+            } catch (error) {
+                const message = error instanceof Error ? error.message : 'Unknown error';
+                void vscode.window.showErrorMessage(`Secure SFTP passphrase store failed: ${message}`);
+            }
+        }
+    );
+
     const clearCredentialsCommand = vscode.commands.registerCommand(
         'secureSftp.clearCredentials',
         async () => {
@@ -155,7 +187,10 @@ export function activate(context: vscode.ExtensionContext): void {
                 },
                 async (progress) => {
                     let lastPercent = 0;
-                    const client = await manager.connect(config);
+                    const settings = getSettings();
+                    const client = await manager.connect(config, {
+                        allowLocalhost: settings.allowLocalhost,
+                    });
                     const sftp = new SFTPClient(client, config.remotePath);
                     await sftp.upload(localPath, remoteFileName, {
                         onProgress: (transferred, total) => {
@@ -213,7 +248,10 @@ export function activate(context: vscode.ExtensionContext): void {
                         cancellable: false,
                     },
                     async () => {
-                        const client = await manager.connect(config);
+                        const settings = getSettings();
+                        const client = await manager.connect(config, {
+                            allowLocalhost: settings.allowLocalhost,
+                        });
                         const sftp = new SFTPClient(client, config.remotePath);
                         await sftp.uploadDirectory(localDir, remoteDir);
                     }
@@ -273,7 +311,10 @@ export function activate(context: vscode.ExtensionContext): void {
                     },
                     async (progress) => {
                         let lastPercent = 0;
-                        const client = await manager.connect(config);
+                    const settings = getSettings();
+                    const client = await manager.connect(config, {
+                        allowLocalhost: settings.allowLocalhost,
+                    });
                         const sftp = new SFTPClient(client, config.remotePath);
                         await sftp.download(remotePath, localPath, {
                             onProgress: (transferred, total) => {
@@ -330,7 +371,10 @@ export function activate(context: vscode.ExtensionContext): void {
                     cancellable: false,
                 },
                 async () => {
-                    const client = await manager.connect(config);
+                    const settings = getSettings();
+                    const client = await manager.connect(config, {
+                        allowLocalhost: settings.allowLocalhost,
+                    });
                     const sftp = new SFTPClient(client, config.remotePath);
                     await sftp.syncDirectory(localDir, remoteDir);
                 }
@@ -416,7 +460,10 @@ export function activate(context: vscode.ExtensionContext): void {
         const remoteFileName = path.posix.basename(localPath);
 
         try {
-            const client = await manager.connect(config);
+            const settings = getSettings();
+            const client = await manager.connect(config, {
+                allowLocalhost: settings.allowLocalhost,
+            });
             const sftp = new SFTPClient(client, config.remotePath);
             await sftp.upload(localPath, remoteFileName);
             updateStatus('connected', config);
@@ -431,6 +478,7 @@ export function activate(context: vscode.ExtensionContext): void {
         connectCommand,
         disconnectCommand,
         setPasswordCommand,
+        setPassphraseCommand,
         clearCredentialsCommand,
         uploadFileCommand,
         uploadFolderCommand,
