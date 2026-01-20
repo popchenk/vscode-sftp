@@ -1,7 +1,7 @@
 # Secure SFTP for VS Code
 
-[![CI](https://github.com/yourusername/secure-sftp-vscode/workflows/CI/badge.svg)](https://github.com/yourusername/secure-sftp-vscode/actions)
-[![Security Audit](https://github.com/yourusername/secure-sftp-vscode/workflows/Security%20Audit/badge.svg)](https://github.com/yourusername/secure-sftp-vscode/actions)
+[![CI](https://github.com/popchenk/vscode-sftp/workflows/CI/badge.svg)](https://github.com/popchenk/vscode-sftp/actions)
+[![Security Audit](https://github.com/popchenk/vscode-sftp/workflows/Security%20Audit/badge.svg)](https://github.com/popchenk/vscode-sftp/actions)
 
 A VS Code extension that provides **secure** SFTP file transfer capabilities with modern security practices.
 
@@ -38,7 +38,7 @@ Existing VS Code SFTP extensions have compatibility issues (handshake errors, ci
 ### From Source
 
 ```bash
-git clone https://github.com/yourusername/secure-sftp-vscode.git
+git clone https://github.com/popchenk/vscode-sftp.git
 cd secure-sftp-vscode
 npm install
 npm run compile
@@ -121,12 +121,16 @@ This extension prioritizes security above all else:
 
 - ✅ **No plaintext credentials** - Uses VS Code SecretStorage API (OS keychain)
 - ✅ **No credential logging** - Passwords and keys are never logged
-- ✅ **Strict host key verification** - Alerts on key changes (MITM protection)
+- ✅ **Strict host key verification** - Always enforced, alerts on key changes
 - ✅ **Modern algorithms only** - Rejects weak ciphers and key exchange methods
 - ✅ **Input validation** - Prevents path traversal and injection attacks
 - ✅ **Fail secure** - Refuses operations rather than proceeding insecurely
 
 For detailed security information, see [SECURITY.md](SECURITY.md).
+Additional docs:
+- [Security Architecture](docs/SECURITY-ARCHITECTURE.md)
+- [Security Best Practices](docs/SECURITY-BEST-PRACTICES.md)
+- [Security Testing](docs/SECURITY-TESTING.md)
 
 ## Troubleshooting
 
@@ -157,6 +161,16 @@ For detailed security information, see [SECURITY.md](SECURITY.md).
 - Verify the remote path exists
 - Check that the path is absolute or relative to your home directory
 
+More help: [Troubleshooting Guide](docs/TROUBLESHOOTING.md)
+
+## Documentation
+
+- [Configuration Reference](docs/CONFIGURATION.md)
+- [Development Guide](docs/DEVELOPMENT.md)
+- [Threat Model](docs/THREAT-MODEL.md)
+- [Release Process](docs/RELEASE.md)
+- [Changelog](CHANGELOG.md)
+
 ## Contributing
 
 Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
@@ -164,7 +178,7 @@ Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for gu
 ### Development Setup
 
 ```bash
-git clone https://github.com/yourusername/secure-sftp-vscode.git
+git clone https://github.com/popchenk/vscode-sftp.git
 cd secure-sftp-vscode
 npm install
 npm run compile
@@ -191,4 +205,4 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-**Note**: This extension is in active development. Please report issues on [GitHub](https://github.com/yourusername/secure-sftp-vscode/issues).
+**Note**: This extension is in active development. Please report issues on [GitHub](https://github.com/popchenk/vscode-sftp/issues).

@@ -97,7 +97,8 @@ export function getSecureSSHConfig(userConfig: Partial<SSHConfig>): SSHConfig {
         port: userConfig.port || DEFAULT_SSH_CONFIG.port!,
         username: userConfig.username || '',
         algorithms: { ...DEFAULT_SSH_ALGORITHMS },
-        strictHostKeyChecking: userConfig.strictHostKeyChecking ?? true,
+        // Strict host key checking is always enforced
+        strictHostKeyChecking: true,
         readyTimeout: userConfig.readyTimeout || DEFAULT_SSH_CONFIG.readyTimeout,
         keepaliveInterval: userConfig.keepaliveInterval || DEFAULT_SSH_CONFIG.keepaliveInterval,
     };

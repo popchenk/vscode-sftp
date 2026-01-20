@@ -43,11 +43,28 @@ export class HostKeyManager {
     }
 
     /**
+     * Get a snapshot of known hosts for synchronous verification.
+     */
+    async getKnownHostsSnapshot(): Promise<Map<string, HostKeyInfo>> {
+        const knownHosts = await this.getKnownHosts();
+        return new Map(knownHosts);
+    }
+
+    /**
+     * List all known host keys.
+     */
+    async listHostKeys(): Promise<HostKeyInfo[]> {
+        const knownHosts = await this.getKnownHostsSnapshot();
+        return Array.from(knownHosts.values());
+    }
+
+    /**
      * Save known hosts to storage.
      */
     private async saveKnownHosts(hosts: Map<string, HostKeyInfo>): Promise<void> {
         const obj: Record<string, HostKeyInfo> = {};
         for (const [hash, info] of hosts.entries()) {
+            // eslint-disable-next-line security/detect-object-injection
             obj[hash] = info;
         }
         await this.context.globalState.update(HostKeyManager.STORAGE_KEY, obj);
@@ -56,7 +73,7 @@ export class HostKeyManager {
     /**
      * Generate a unique identifier for a host key.
      */
-    private getHostKeyHash(host: string, port: number, keyType: string, key: Buffer): string {
+    getHostKeyHash(host: string, port: number, keyType: string, key: Buffer): string {
         return hashHostKey(host, port, keyType, key);
     }
 
@@ -108,7 +125,12 @@ export class HostKeyManager {
         }
 
         // Check if the key matches
-        const storedHash = this.getHostKeyHash(host, port, existingKey.keyType, Buffer.from(existingKey.key, 'base64'));
+        const storedHash = this.getHostKeyHash(
+            host,
+            port,
+            existingKey.keyType,
+            Buffer.from(existingKey.key, 'base64')
+        );
 
         if (constantTimeCompare(hash, storedHash)) {
             // Key matches - update last seen

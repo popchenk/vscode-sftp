@@ -108,9 +108,11 @@ export function isPathWithinRoot(filePath: string, root: string): boolean {
         const sanitizedPath = sanitizePath(filePath);
         const sanitizedRoot = sanitizePath(root);
 
-        // Resolve to absolute paths
-        const resolvedPath = path.resolve(sanitizedPath);
+        // Resolve to absolute paths, anchoring relative paths to the root
         const resolvedRoot = path.resolve(sanitizedRoot);
+        const resolvedPath = path.isAbsolute(sanitizedPath)
+            ? path.resolve(sanitizedPath)
+            : path.resolve(resolvedRoot, sanitizedPath);
 
         // Check if path starts with root
         const relative = path.relative(resolvedRoot, resolvedPath);

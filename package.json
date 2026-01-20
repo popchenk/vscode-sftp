@@ -2,7 +2,7 @@
   "name": "secure-sftp",
   "displayName": "Secure SFTP",
   "description": "Secure SFTP file transfer for VS Code with modern security practices",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "secure-sftp",
   "engines": {
     "vscode": "^1.85.0"
@@ -23,10 +23,13 @@
     "onCommand:secureSftp.connect",
     "onCommand:secureSftp.disconnect",
     "onCommand:secureSftp.uploadFile",
+    "onCommand:secureSftp.uploadFolder",
     "onCommand:secureSftp.downloadFile",
     "onCommand:secureSftp.sync",
+    "onCommand:secureSftp.configure",
     "onCommand:secureSftp.setPassword",
-    "onCommand:secureSftp.clearCredentials"
+    "onCommand:secureSftp.clearCredentials",
+    "onCommand:secureSftp.viewHostKeys"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -44,6 +47,10 @@
         "title": "Secure SFTP: Upload Current File"
       },
       {
+        "command": "secureSftp.uploadFolder",
+        "title": "Secure SFTP: Upload Folder"
+      },
+      {
         "command": "secureSftp.downloadFile",
         "title": "Secure SFTP: Download File"
       },
@@ -52,12 +59,20 @@
         "title": "Secure SFTP: Sync Folders"
       },
       {
+        "command": "secureSftp.configure",
+        "title": "Secure SFTP: Open Configuration"
+      },
+      {
         "command": "secureSftp.setPassword",
         "title": "Secure SFTP: Store Credentials"
       },
       {
         "command": "secureSftp.clearCredentials",
         "title": "Secure SFTP: Clear Stored Credentials"
+      },
+      {
+        "command": "secureSftp.viewHostKeys",
+        "title": "Secure SFTP: View Known Hosts"
       }
     ],
     "configuration": {
@@ -67,11 +82,6 @@
           "type": "array",
           "default": [],
           "description": "SFTP server configurations (credentials stored separately in OS keychain)"
-        },
-        "secureSftp.strictHostKeyChecking": {
-          "type": "boolean",
-          "default": true,
-          "description": "Verify server host keys (STRONGLY recommended for security)"
         },
         "secureSftp.logLevel": {
           "type": "string",
@@ -115,21 +125,21 @@
     "@types/vscode": "^1.85.0",
     "@typescript-eslint/eslint-plugin": "^6.19.0",
     "@typescript-eslint/parser": "^6.19.0",
-    "@vitest/coverage-v8": "^1.2.0",
+    "@vitest/coverage-v8": "^3.2.4",
     "eslint": "^8.56.0",
     "eslint-plugin-security": "^2.1.0",
     "husky": "^8.0.3",
     "prettier": "^3.2.4",
     "typescript": "^5.3.3",
-    "vitest": "^1.2.0"
+    "vitest": "^3.2.4"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/secure-sftp-vscode.git"
+    "url": "https://github.com/popchenk/vscode-sftp.git"
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/yourusername/secure-sftp-vscode/issues"
+    "url": "https://github.com/popchenk/vscode-sftp/issues"
   },
-  "homepage": "https://github.com/yourusername/secure-sftp-vscode#readme"
+  "homepage": "https://github.com/popchenk/vscode-sftp#readme"
 }

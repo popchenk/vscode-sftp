@@ -163,10 +163,13 @@ export class Logger {
         for (const [key, value] of Object.entries(obj)) {
             const lowerKey = key.toLowerCase();
             if (sensitiveKeys.some((sensitive) => lowerKey.includes(sensitive))) {
+                // eslint-disable-next-line security/detect-object-injection
                 sanitized[key] = '[REDACTED]';
             } else if (typeof value === 'object') {
+                // eslint-disable-next-line security/detect-object-injection
                 sanitized[key] = Logger.sanitizeObject(value);
             } else {
+                // eslint-disable-next-line security/detect-object-injection
                 sanitized[key] = value;
             }
         }

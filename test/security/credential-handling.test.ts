@@ -1,4 +1,6 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { SecureStorage } from '../../src/config/secure-storage';
+import { Credentials } from '../../src/types';
 import { Logger } from '../../src/utils/logger';
 
 describe('Logger Security', () => {
@@ -90,5 +92,28 @@ describe('Logger Security', () => {
 
         infoLogger.error('Error message');
         expect(outputSpy).toHaveBeenCalledWith(expect.stringContaining('[ERROR]'));
+    });
+});
+
+describe('Credential Clearing', () => {
+    test('overwrites sensitive credential fields', () => {
+        const secrets = {
+            store: vi.fn(),
+            get: vi.fn(),
+            delete: vi.fn(),
+        };
+        const storage = new SecureStorage(secrets as any);
+
+        const credentials: Credentials = {
+            password: 'secret123',
+            privateKey: 'PRIVATEKEYDATA',
+            passphrase: 'passphrase',
+        };
+
+        storage.clearCredentials(credentials);
+
+        expect(credentials.password).toBe('\0'.repeat('secret123'.length));
+        expect(credentials.privateKey).toBe('\0'.repeat('PRIVATEKEYDATA'.length));
+        expect(credentials.passphrase).toBe('\0'.repeat('passphrase'.length));
     });
 });

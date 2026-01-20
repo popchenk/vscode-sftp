@@ -62,7 +62,7 @@ We welcome pull requests! Please:
 
 ```bash
 # Clone your fork
-git clone https://github.com/yourusername/secure-sftp-vscode.git
+git clone https://github.com/popchenk/vscode-sftp.git
 cd secure-sftp-vscode
 
 # Install dependencies
@@ -292,7 +292,7 @@ Maintainers handle releases:
 
 ## Questions?
 
-- Open a [Discussion](https://github.com/yourusername/secure-sftp-vscode/discussions)
+- Open a [Discussion](https://github.com/popchenk/vscode-sftp/discussions)
 - Comment on relevant issues
 - Reach out to maintainers
 
