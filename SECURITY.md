@@ -171,7 +171,7 @@ For security-related questions or concerns:
 
 📧 Email: security@yourdomain.com  
 🔒 PGP Key: [Link to PGP key] (optional)  
-🐛 GitHub: [Security Advisories](https://github.com/yourusername/secure-sftp-vscode/security/advisories)
+🐛 GitHub: [Security Advisories](https://github.com/popchenk/vscode-sftp/security/advisories)
 
 ---
 
