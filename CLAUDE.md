@@ -17,6 +17,8 @@ Existing VS Code SFTP extensions have compatibility issues (handshake errors, ci
 - Upload and download files
 - Sync local folders with remote servers
 - Upload on save (optional)
+- **File watcher** - Auto-sync on file create/change/delete (with debouncing)
+- **Jump host support** - Connect through SSH proxy/bastion hosts
 - All with modern security defaults and proper credential handling
 
 ## Key Security Principles
@@ -50,7 +52,10 @@ Read `plan.md` in this repository - it contains:
 ```
 src/
 ├── extension.ts          # Entry point
-├── core/                 # SSH/SFTP logic
+├── core/
+│   ├── ssh-manager.ts    # SSH connection management
+│   ├── sftp-client.ts    # SFTP operations (upload, download, delete)
+│   └── file-watcher.ts   # File system watcher for auto-sync
 ├── config/               # Configuration & secure storage
 ├── providers/            # VS Code integration
 ├── commands/             # User commands
@@ -67,15 +72,41 @@ src/
 
 ## Commands
 
-When complete, the extension should provide:
+The extension provides:
 
 - `secureSftp.connect` - Connect to server
 - `secureSftp.disconnect` - Disconnect
 - `secureSftp.uploadFile` - Upload current file
+- `secureSftp.uploadFolder` - Upload folder
 - `secureSftp.downloadFile` - Download file
 - `secureSftp.sync` - Sync folders
 - `secureSftp.setPassword` - Store credentials securely
+- `secureSftp.setPassphrase` - Store private key passphrase
 - `secureSftp.clearCredentials` - Remove stored credentials
+- `secureSftp.viewHostKeys` - View/manage known hosts
+- `secureSftp.configure` - Open settings
+
+## File Watcher Configuration
+
+Enable automatic file syncing by adding a `watcher` block to your config:
+
+```json
+{
+    "secureSftp.configs": [{
+        "name": "my-server",
+        "host": "example.com",
+        "watcher": {
+            "files": "**/*",
+            "autoUpload": true,
+            "autoDelete": true,
+            "debounceDelay": 500,
+            "excludePatterns": ["**/test/**"]
+        }
+    }]
+}
+```
+
+Default ignored patterns: `node_modules`, `.git`, `.svn`, `.DS_Store`, `Thumbs.db`, `*.swp`
 
 ## Testing Approach
 

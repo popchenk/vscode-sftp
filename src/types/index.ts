@@ -77,15 +77,54 @@ export interface SFTPConfig {
     ignore?: string[];
     strictHostKeyChecking?: boolean;
     algorithms?: SSHAlgorithms;
+    hop?: HopConfig;
+}
+
+/**
+ * Jump host (proxy) configuration.
+ */
+export interface HopConfig {
+    host: string;
+    port: number;
+    username: string;
+    authMethod: AuthMethod;
+    privateKeyPath?: string;
+    algorithms?: SSHAlgorithms;
 }
 
 /**
  * File watcher configuration.
  */
 export interface WatcherConfig {
-    files: string;
-    autoUpload: boolean;
-    autoDelete: boolean;
+    files: string;                    // Glob pattern (e.g., "**/*")
+    autoUpload: boolean;              // Upload new/modified files
+    autoDelete: boolean;              // Delete remote files when local deleted
+    debounceDelay?: number;           // Delay in ms (default: 500)
+    excludePatterns?: string[];       // Additional patterns to exclude
+}
+
+/**
+ * Result of a batch file operation.
+ */
+export interface BatchOperationResult {
+    successful: string[];
+    failed: Array<{ path: string; error: string }>;
+    skipped: string[];
+}
+
+/**
+ * Watcher event types.
+ */
+export type WatcherEventType = 'create' | 'change' | 'delete';
+
+/**
+ * Watcher event representing a file system change.
+ */
+export interface WatcherEvent {
+    type: WatcherEventType;
+    localPath: string;
+    relativePath: string;
+    timestamp: Date;
 }
 
 /**

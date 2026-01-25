@@ -86,7 +86,97 @@
         "secureSftp.configs": {
           "type": "array",
           "default": [],
-          "description": "SFTP server configurations (credentials stored separately in OS keychain)"
+          "description": "SFTP server configurations (credentials stored separately in OS keychain)",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Display name for this connection"
+              },
+              "host": {
+                "type": "string",
+                "description": "Server hostname or IP address"
+              },
+              "port": {
+                "type": "integer",
+                "default": 22,
+                "description": "SSH port"
+              },
+              "username": {
+                "type": "string",
+                "description": "SSH username"
+              },
+              "remotePath": {
+                "type": "string",
+                "description": "Remote path to sync to"
+              },
+              "authMethod": {
+                "type": "string",
+                "enum": ["password", "privateKey", "agent"],
+                "default": "agent",
+                "description": "Authentication method"
+              },
+              "privateKeyPath": {
+                "type": "string",
+                "description": "Path to private key file"
+              },
+              "uploadOnSave": {
+                "type": "boolean",
+                "default": false,
+                "description": "Upload files automatically when saved"
+              },
+              "watcher": {
+                "type": "object",
+                "description": "File watcher configuration for automatic sync",
+                "properties": {
+                  "files": {
+                    "type": "string",
+                    "default": "**/*",
+                    "description": "Glob pattern for files to watch (e.g., '**/*')"
+                  },
+                  "autoUpload": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Automatically upload new/modified files"
+                  },
+                  "autoDelete": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Automatically delete remote files when local files are deleted"
+                  },
+                  "debounceDelay": {
+                    "type": "integer",
+                    "default": 500,
+                    "minimum": 100,
+                    "maximum": 10000,
+                    "description": "Debounce delay in milliseconds (default: 500)"
+                  },
+                  "excludePatterns": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "default": [],
+                    "description": "Additional glob patterns to exclude (node_modules, .git already excluded)"
+                  }
+                }
+              },
+              "ignore": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Patterns to ignore during sync"
+              },
+              "strictHostKeyChecking": {
+                "type": "boolean",
+                "default": true,
+                "description": "Require host key verification"
+              }
+            },
+            "required": ["name", "host", "username", "remotePath", "authMethod"]
+          }
         },
         "secureSftp.logLevel": {
           "type": "string",
@@ -108,6 +198,42 @@
           "type": "boolean",
           "default": false,
           "description": "Automatically upload files when saved"
+        },
+        "secureSftp.hop": {
+          "type": "object",
+          "description": "Jump host (proxy) configuration",
+          "properties": {
+            "host": {
+              "type": "string",
+              "description": "Jump host hostname or IP"
+            },
+            "port": {
+              "type": "integer",
+              "default": 22,
+              "description": "Jump host SSH port"
+            },
+            "username": {
+              "type": "string",
+              "description": "Jump host username"
+            },
+            "authMethod": {
+              "type": "string",
+              "enum": [
+                "password",
+                "privateKey",
+                "agent"
+              ],
+              "default": "agent",
+              "description": "Authentication method for jump host"
+            },
+            "privateKeyPath": {
+              "type": "string",
+              "description": "Path to private key for jump host"
+            },
+            "algorithms": {
+              "$ref": "#/definitions/algorithms"
+            }
+          }
         }
       }
     }

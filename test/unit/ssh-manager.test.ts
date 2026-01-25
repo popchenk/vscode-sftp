@@ -6,36 +6,34 @@ import { SSHManager } from '../../src/core/ssh-manager';
 import { SFTPConfig } from '../../src/types';
 import { hashHostKey } from '../../src/utils/crypto-utils';
 
-vi.mock('ssh2', () => {
-    const { EventEmitter } = require('events');
+const { EventEmitter } = require('events');
 
-    class MockClient extends EventEmitter {
-        connect(config: any) {
-            const key = Buffer.from('host-key');
-            const ok = config.hostVerifier ? config.hostVerifier(key) : true;
-            if (!ok) {
-                this.emit('error', new Error('Host verification failed'));
-                return;
-            }
-            this.emit('ready');
+class MockClient extends EventEmitter {
+    connect(config: any) {
+        const key = Buffer.from('host-key');
+        const ok = config.hostVerifier ? config.hostVerifier(key) : true;
+        if (!ok) {
+            this.emit('error', new Error('Host verification failed'));
+            return;
         }
-
-        end() {
-            this.emit('close');
-        }
-
-        destroy() {
-            this.emit('close');
-        }
+        this.emit('ready');
     }
 
-    return {
-        Client: MockClient,
-        utils: {
-            parseKey: () => ({ type: 'ssh-ed25519' }),
-        },
-    };
-});
+    end() {
+        this.emit('close');
+    }
+
+    destroy() {
+        this.emit('close');
+    }
+}
+
+const mockSSH2 = {
+    Client: MockClient,
+    utils: {
+        parseKey: () => ({ type: 'ssh-ed25519' }),
+    },
+};
 
 describe('SSHManager', () => {
     test('connects when host key is known', async () => {
@@ -61,7 +59,7 @@ describe('SSHManager', () => {
             clearCredentials: vi.fn(),
         };
 
-        const manager = new SSHManager(secureStorage as any, hostKeyManager as any);
+        const manager = new SSHManager(secureStorage as any, hostKeyManager as any, mockSSH2);
 
         const config: SFTPConfig = {
             name: 'Test',
@@ -89,7 +87,7 @@ describe('SSHManager', () => {
             clearCredentials: vi.fn(),
         };
 
-        const manager = new SSHManager(secureStorage as any, hostKeyManager as any);
+        const manager = new SSHManager(secureStorage as any, hostKeyManager as any, mockSSH2);
 
         const config: SFTPConfig = {
             name: 'Test',
@@ -132,7 +130,7 @@ describe('SSHManager', () => {
             clearCredentials: vi.fn(),
         };
 
-        const manager = new SSHManager(secureStorage as any, hostKeyManager as any);
+        const manager = new SSHManager(secureStorage as any, hostKeyManager as any, mockSSH2);
 
         const config: SFTPConfig = {
             name: 'Test',
@@ -159,7 +157,7 @@ describe('SSHManager', () => {
             clearCredentials: vi.fn(),
         };
 
-        const manager = new SSHManager(secureStorage as any, hostKeyManager as any);
+        const manager = new SSHManager(secureStorage as any, hostKeyManager as any, mockSSH2);
 
         const config: SFTPConfig = {
             name: 'Test',
@@ -197,7 +195,7 @@ describe('SSHManager', () => {
             clearCredentials: vi.fn(),
         };
 
-        const manager = new SSHManager(secureStorage as any, hostKeyManager as any);
+        const manager = new SSHManager(secureStorage as any, hostKeyManager as any, mockSSH2);
 
         const config: SFTPConfig = {
             name: 'Test',

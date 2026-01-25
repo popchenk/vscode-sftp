@@ -44,3 +44,7 @@ logs/
 # IDE
 .idea/
 *.iml
+
+# Local testing (contains test credentials)
+docker-compose.yml
+docker-compose.*.yml

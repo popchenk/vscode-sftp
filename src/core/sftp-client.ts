@@ -1,6 +1,6 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { Client, SFTPWrapper, TransferOptions as SshTransferOptions } from 'ssh2';
+import type { Client, SFTPWrapper, TransferOptions as SshTransferOptions } from 'ssh2';
 import { getLogger } from '../utils/logger';
 import { sanitizePath } from '../utils/validators';
 import { FileEntry, TransferOptions, TransferResult } from '../types';
@@ -12,7 +12,7 @@ const MODE_SYMLINK = 0o120000;
 export class SFTPClient {
     private logger = getLogger();
 
-    constructor(private readonly client: Client, private readonly remoteRoot?: string) {}
+    constructor(private readonly client: Client, private readonly remoteRoot?: string) { }
 
     async listDirectory(remotePath: string): Promise<FileEntry[]> {
         const sftp = await this.getSftp();
@@ -64,8 +64,8 @@ export class SFTPClient {
 
         const step: SshTransferOptions['step'] | undefined = options?.onProgress
             ? (transferred, _chunkSize, fileSize): void => {
-                  options.onProgress?.(transferred, fileSize);
-              }
+                options.onProgress?.(transferred, fileSize);
+            }
             : undefined;
 
         const transferOptions: SshTransferOptions = {
@@ -109,8 +109,8 @@ export class SFTPClient {
 
         const step: SshTransferOptions['step'] | undefined = options?.onProgress
             ? (transferred, _chunkSize, fileSize): void => {
-                  options.onProgress?.(transferred, fileSize);
-              }
+                options.onProgress?.(transferred, fileSize);
+            }
             : undefined;
 
         const transferOptions: SshTransferOptions = {
@@ -162,6 +162,80 @@ export class SFTPClient {
 
     async syncDirectory(localDir: string, remoteDir: string): Promise<void> {
         await this.uploadDirectory(localDir, remoteDir);
+    }
+
+    /**
+     * Delete a remote file.
+     * @param remotePath Path to the remote file to delete
+     */
+    async deleteFile(remotePath: string): Promise<void> {
+        const sftp = await this.getSftp();
+        const resolvedPath = this.resolveRemotePath(remotePath);
+
+        return new Promise((resolve, reject) => {
+            sftp.unlink(resolvedPath, (error) => {
+                if (error) {
+                    // Treat "file not found" as success (already deleted)
+                    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+                        this.logger.debug(`File already deleted: ${resolvedPath}`);
+                        resolve();
+                        return;
+                    }
+                    reject(error);
+                    return;
+                }
+                this.logger.debug(`Deleted remote file: ${resolvedPath}`);
+                resolve();
+            });
+        });
+    }
+
+    /**
+     * Delete a remote directory.
+     * @param remotePath Path to the remote directory to delete
+     */
+    async deleteDirectory(remotePath: string): Promise<void> {
+        const sftp = await this.getSftp();
+        const resolvedPath = this.resolveRemotePath(remotePath);
+
+        return new Promise((resolve, reject) => {
+            sftp.rmdir(resolvedPath, (error) => {
+                if (error) {
+                    // Treat "directory not found" as success (already deleted)
+                    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+                        this.logger.debug(`Directory already deleted: ${resolvedPath}`);
+                        resolve();
+                        return;
+                    }
+                    reject(error);
+                    return;
+                }
+                this.logger.debug(`Deleted remote directory: ${resolvedPath}`);
+                resolve();
+            });
+        });
+    }
+
+    /**
+     * Check if a remote path exists.
+     * @param remotePath Path to check
+     * @returns true if the path exists, false otherwise
+     */
+    async exists(remotePath: string): Promise<boolean> {
+        const sftp = await this.getSftp();
+        const resolvedPath = this.resolveRemotePath(remotePath);
+        const stats = await this.statRemoteSafe(sftp, resolvedPath);
+        return stats !== null;
+    }
+
+    /**
+     * Ensure a remote directory exists, creating it and parent directories as needed.
+     * @param remotePath Path to the directory to ensure exists
+     */
+    async ensureDirectory(remotePath: string): Promise<void> {
+        const sftp = await this.getSftp();
+        const resolvedPath = this.resolveRemotePath(remotePath);
+        await this.ensureRemoteDir(sftp, resolvedPath);
     }
 
     private getEntryType(mode: number): FileEntry['type'] {

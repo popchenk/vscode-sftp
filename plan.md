@@ -49,6 +49,7 @@ secure-sftp-vscode/
 │   ├── core/
 │   │   ├── ssh-manager.ts      # SSH connection management
 │   │   ├── sftp-client.ts      # SFTP operations
+│   │   ├── file-watcher.ts     # File system watcher for auto-sync
 │   │   └── tunnel-manager.ts   # SSH tunnel handling (if needed)
 │   ├── config/
 │   │   ├── config-manager.ts   # Configuration handling
@@ -598,3 +599,84 @@ jobs:
 This plan prioritizes security over features. The initial release should have a minimal feature set that works reliably and securely. Additional features can be added in subsequent releases after the security foundation is solid.
 
 Key principle: **When in doubt, fail secure.** It's better to refuse an operation than to proceed insecurely.
+
+## GEMINI CHANGES
+
+### 1. Native Jump Host Support (Tunneling) ✅
+
+**Goal**: Enable users to connect to target SFTP servers via an intermediate SSH "Jump Host" (ProxyJump), fully managed by the extension.
+
+**Implementation Details**:
+- **Configuration**:
+  - Add `hop` object to `SFTPConfig`:
+    - `host`, `port`, `username`
+    - `authMethod`, `password`, `privateKeyPath`, `passphrase`, `agent`
+- **Core Logic (`ssh-manager.ts`)**:
+  - Detect `hop` configuration.
+  - Establish SSH connection to Jump Host first.
+  - Create a stream via `jumpHostClient.forwardOut`.
+  - Connect to Target Host using the forwarded stream.
+  - Ensure clean disconnection of both links.
+- **Verification**:
+  - Docker-based environment with `jump-host` and `target-host` containers.
+  - Integration tests verifying connectivity through the jump host.
+
+---
+
+### 2. File Watcher for Automatic Sync ✅
+
+**Goal**: Automatically detect file changes (including from git branch switches) and sync to remote SFTP server.
+
+**Implementation Details**:
+
+- **New Types (`src/types/index.ts`)**:
+  - Extended `WatcherConfig` with `debounceDelay` and `excludePatterns`
+  - Added `BatchOperationResult`, `WatcherEventType`, `WatcherEvent`
+
+- **SFTP Client (`src/core/sftp-client.ts`)**:
+  - Added `deleteFile(remotePath)` - deletes remote files
+  - Added `deleteDirectory(remotePath)` - deletes remote directories
+  - Added `exists(remotePath)` - checks if remote path exists
+  - Added `ensureDirectory(remotePath)` - creates directories recursively
+
+- **File Watcher (`src/core/file-watcher.ts`)** - NEW:
+  - Uses VS Code `createFileSystemWatcher()` API
+  - Event debouncing (500ms default, configurable)
+  - Batch processing with progress UI notification
+  - Default ignore patterns: `node_modules`, `.git`, `.svn`, `.DS_Store`, `Thumbs.db`, `*.swp`
+  - Delete confirmation for >5 files
+  - Windows/Unix path normalization
+  - Auto-creates remote directories before upload
+
+- **Extension Integration (`src/extension.ts`)**:
+  - FileWatcher initialized on activation
+  - Auto-starts watchers for configs with watcher enabled
+  - Cleanup on deactivation
+
+- **Configuration Schema (`package.json`)**:
+  - Full watcher configuration options documented
+
+**Example Configuration**:
+```json
+{
+    "secureSftp.configs": [{
+        "name": "my-server",
+        "host": "example.com",
+        "watcher": {
+            "files": "**/*",
+            "autoUpload": true,
+            "autoDelete": true,
+            "debounceDelay": 500,
+            "excludePatterns": ["**/test/**"]
+        }
+    }]
+}
+```
+
+**Verified Working**:
+- File creation → auto-upload ✅
+- File modification → auto-upload ✅
+- File deletion → auto-delete from remote ✅
+- Works with jump host connections ✅
+- Windows path separators handled correctly ✅
+

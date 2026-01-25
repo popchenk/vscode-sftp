@@ -36,7 +36,7 @@ export function isValidHost(
         lowercased.startsWith('192.168.') ||
         lowercased.match(/^172\.(1[6-9]|2[0-9]|3[0-1])\./)
     ) {
-        return false;
+        return Boolean(options.allowLocalhost);
     }
 
     // Basic hostname/IP validation
@@ -77,6 +77,43 @@ export function isValidUsername(username: string): boolean {
 }
 
 /**
+ * Checks if we're running in WSL (Windows Subsystem for Linux) environment.
+ * Returns false on Windows, macOS, and native Linux.
+ */
+function isWSL(): boolean {
+    // Only applies to Linux platform - macOS ('darwin') and Windows ('win32') return false
+    if (process.platform !== 'linux') {
+        return false;
+    }
+    // Check for WSL-specific environment variables
+    return (
+        process.env.WSL_DISTRO_NAME !== undefined ||
+        process.env.WSLENV !== undefined
+    );
+}
+
+/**
+ * Converts a Windows path to WSL path if running in WSL.
+ * e.g., "C:\Users\foo" -> "/mnt/c/Users/foo"
+ *
+ * Does nothing on Windows, macOS, or native Linux - only applies in WSL.
+ */
+function convertWindowsPathToWSL(filePath: string): string {
+    // Skip conversion on non-WSL platforms (Windows, macOS, native Linux)
+    if (!isWSL()) {
+        return filePath;
+    }
+    // Match Windows drive letter pattern (e.g., "C:" or "C:\")
+    const windowsDriveMatch = filePath.match(/^([a-zA-Z]):[/\\]?(.*)$/);
+    if (windowsDriveMatch) {
+        const driveLetter = windowsDriveMatch[1].toLowerCase();
+        const remainingPath = windowsDriveMatch[2];
+        return `/mnt/${driveLetter}/${remainingPath}`;
+    }
+    return filePath;
+}
+
+/**
  * Sanitizes a file path by removing dangerous characters.
  * Does NOT validate path traversal - use isPathWithinRoot for that.
  */
@@ -87,6 +124,9 @@ export function sanitizePath(filePath: string): string {
 
     // Remove null bytes
     let sanitized = filePath.replace(/\0/g, '');
+
+    // Convert Windows paths to WSL paths if needed
+    sanitized = convertWindowsPathToWSL(sanitized);
 
     // Normalize path separators
     sanitized = sanitized.replace(/\\/g, '/');

@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import { ConfigManager, GlobalSettings } from './config/config-manager';
 import { HostKeyManager } from './config/host-key-manager';
 import { SecureStorage } from './config/secure-storage';
+import { FileWatcher } from './core/file-watcher';
 import { SFTPClient } from './core/sftp-client';
 import { SSHManager } from './core/ssh-manager';
 import { getLogger, initLogger } from './utils/logger';
@@ -14,6 +15,7 @@ import { LogLevel } from './types';
  */
 let sshManager: SSHManager | null = null;
 let statusBarItem: vscode.StatusBarItem | null = null;
+let fileWatcher: FileWatcher | null = null;
 
 export function activate(context: vscode.ExtensionContext): void {
     const configuration = vscode.workspace.getConfiguration('secureSftp');
@@ -27,6 +29,10 @@ export function activate(context: vscode.ExtensionContext): void {
     const secureStorage = new SecureStorage(context.secrets);
     const hostKeyManager = new HostKeyManager(context);
     sshManager = new SSHManager(secureStorage, hostKeyManager);
+
+    // Initialize file watcher
+    fileWatcher = new FileWatcher(sshManager, getSettings);
+    initializeFileWatchers(configManager, fileWatcher, logger);
 
     statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
     statusBarItem.text = 'Secure SFTP: Disconnected';
@@ -86,24 +92,44 @@ export function activate(context: vscode.ExtensionContext): void {
                 return;
             }
 
+            // Target Host Password
             const password = await vscode.window.showInputBox({
                 prompt: `Enter password for ${config.username}@${config.host}`,
                 password: true,
                 ignoreFocusOut: true,
             });
 
-            if (!password) {
-                return;
+            if (password) {
+                try {
+                    await secureStorage.storePassword(config.host, config.username, password);
+                    void vscode.window.showInformationMessage(
+                        `Secure SFTP stored credentials for ${config.username}@${config.host}`
+                    );
+                } catch (error) {
+                    const message = error instanceof Error ? error.message : 'Unknown error';
+                    void vscode.window.showErrorMessage(`Secure SFTP credential store failed: ${message}`);
+                }
             }
 
-            try {
-                await secureStorage.storePassword(config.host, config.username, password);
-                void vscode.window.showInformationMessage(
-                    `Secure SFTP stored credentials for ${config.username}@${config.host}`
-                );
-            } catch (error) {
-                const message = error instanceof Error ? error.message : 'Unknown error';
-                void vscode.window.showErrorMessage(`Secure SFTP credential store failed: ${message}`);
+            // Jump Host Password
+            if (config.hop && config.hop.authMethod === 'password') {
+                const hopPassword = await vscode.window.showInputBox({
+                    prompt: `Enter password for JUMP HOST ${config.hop.username}@${config.hop.host}`,
+                    password: true,
+                    ignoreFocusOut: true,
+                });
+
+                if (hopPassword) {
+                    try {
+                        await secureStorage.storePassword(config.hop.host, config.hop.username, hopPassword);
+                        void vscode.window.showInformationMessage(
+                            `Secure SFTP stored credentials for JUMP HOST ${config.hop.username}@${config.hop.host}`
+                        );
+                    } catch (error) {
+                        const message = error instanceof Error ? error.message : 'Unknown error';
+                        void vscode.window.showErrorMessage(`Secure SFTP jump host credential store failed: ${message}`);
+                    }
+                }
             }
         }
     );
@@ -116,24 +142,44 @@ export function activate(context: vscode.ExtensionContext): void {
                 return;
             }
 
+            // Target Host Passphrase
             const passphrase = await vscode.window.showInputBox({
                 prompt: `Enter passphrase for ${config.username}@${config.host}`,
                 password: true,
                 ignoreFocusOut: true,
             });
 
-            if (!passphrase) {
-                return;
+            if (passphrase) {
+                try {
+                    await secureStorage.storePassphrase(config.host, config.username, passphrase);
+                    void vscode.window.showInformationMessage(
+                        `Secure SFTP stored passphrase for ${config.username}@${config.host}`
+                    );
+                } catch (error) {
+                    const message = error instanceof Error ? error.message : 'Unknown error';
+                    void vscode.window.showErrorMessage(`Secure SFTP passphrase store failed: ${message}`);
+                }
             }
 
-            try {
-                await secureStorage.storePassphrase(config.host, config.username, passphrase);
-                void vscode.window.showInformationMessage(
-                    `Secure SFTP stored passphrase for ${config.username}@${config.host}`
-                );
-            } catch (error) {
-                const message = error instanceof Error ? error.message : 'Unknown error';
-                void vscode.window.showErrorMessage(`Secure SFTP passphrase store failed: ${message}`);
+            // Jump Host Passphrase
+            if (config.hop && config.hop.authMethod === 'privateKey') {
+                const hopPassphrase = await vscode.window.showInputBox({
+                    prompt: `Enter passphrase for JUMP HOST ${config.hop.username}@${config.hop.host}`,
+                    password: true,
+                    ignoreFocusOut: true,
+                });
+
+                if (hopPassphrase) {
+                    try {
+                        await secureStorage.storePassphrase(config.hop.host, config.hop.username, hopPassphrase);
+                        void vscode.window.showInformationMessage(
+                            `Secure SFTP stored passphrase for JUMP HOST ${config.hop.username}@${config.hop.host}`
+                        );
+                    } catch (error) {
+                        const message = error instanceof Error ? error.message : 'Unknown error';
+                        void vscode.window.showErrorMessage(`Secure SFTP jump host passphrase store failed: ${message}`);
+                    }
+                }
             }
         }
     );
@@ -176,7 +222,7 @@ export function activate(context: vscode.ExtensionContext): void {
         }
 
         const localPath = editor.document.uri.fsPath;
-        const remoteFileName = path.posix.basename(localPath);
+        const remoteFileName = path.basename(localPath);
 
         try {
             await vscode.window.withProgress(
@@ -237,7 +283,7 @@ export function activate(context: vscode.ExtensionContext): void {
             }
 
             const localDir = selection[0].fsPath;
-            const folderName = path.posix.basename(localDir);
+            const folderName = path.basename(localDir);
             const remoteDir = path.posix.join(config.remotePath, folderName);
 
             try {
@@ -311,10 +357,10 @@ export function activate(context: vscode.ExtensionContext): void {
                     },
                     async (progress) => {
                         let lastPercent = 0;
-                    const settings = getSettings();
-                    const client = await manager.connect(config, {
-                        allowLocalhost: settings.allowLocalhost,
-                    });
+                        const settings = getSettings();
+                        const client = await manager.connect(config, {
+                            allowLocalhost: settings.allowLocalhost,
+                        });
                         const sftp = new SFTPClient(client, config.remotePath);
                         await sftp.download(remotePath, localPath, {
                             onProgress: (transferred, total) => {
@@ -360,7 +406,7 @@ export function activate(context: vscode.ExtensionContext): void {
         }
 
         const localDir = selection[0].fsPath;
-        const folderName = path.posix.basename(localDir);
+        const folderName = path.basename(localDir);
         const remoteDir = path.posix.join(config.remotePath, folderName);
 
         try {
@@ -457,7 +503,7 @@ export function activate(context: vscode.ExtensionContext): void {
         }
 
         const localPath = document.uri.fsPath;
-        const remoteFileName = path.posix.basename(localPath);
+        const remoteFileName = path.basename(localPath);
 
         try {
             const settings = getSettings();
@@ -497,6 +543,11 @@ export function activate(context: vscode.ExtensionContext): void {
  * CRITICAL: Must clean up all connections and clear sensitive data.
  */
 export async function deactivate(): Promise<void> {
+    if (fileWatcher) {
+        fileWatcher.stopWatching();
+        fileWatcher = null;
+    }
+
     if (sshManager) {
         await sshManager.disconnectAll();
         sshManager = null;
@@ -505,6 +556,34 @@ export async function deactivate(): Promise<void> {
     if (statusBarItem) {
         statusBarItem.dispose();
         statusBarItem = null;
+    }
+}
+
+/**
+ * Initialize file watchers for all configs that have watcher enabled.
+ */
+function initializeFileWatchers(
+    configManager: ConfigManager,
+    watcher: FileWatcher,
+    logger: ReturnType<typeof getLogger>
+): void {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceFolders || workspaceFolders.length === 0) {
+        return;
+    }
+
+    const workspaceRoot = workspaceFolders[0].uri.fsPath;
+    const configs = configManager.getConfigs();
+
+    for (const config of configs) {
+        if (config.watcher && (config.watcher.autoUpload || config.watcher.autoDelete)) {
+            try {
+                watcher.startWatching(workspaceRoot, config);
+            } catch (error) {
+                const message = error instanceof Error ? error.message : 'Unknown error';
+                logger.error(`Failed to start file watcher for ${config.name}: ${message}`);
+            }
+        }
     }
 }
 
