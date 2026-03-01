@@ -10,7 +10,7 @@ We take the security of Secure SFTP seriously. If you discover a security vulner
 
 Instead, please report security vulnerabilities by emailing:
 
-📧 **security@yourdomain.com**
+📧 **security@popchenk.com**
 
 Include the following information in your report:
 
@@ -169,7 +169,7 @@ Security updates will be:
 
 For security-related questions or concerns:
 
-📧 Email: security@yourdomain.com  
+📧 Email: security@popchenk.com  
 🔒 PGP Key: [Link to PGP key] (optional)  
 🐛 GitHub: [Security Advisories](https://github.com/popchenk/vscode-sftp/security/advisories)
 
