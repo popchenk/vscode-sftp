@@ -292,7 +292,7 @@ Maintainers handle releases:
 
 ## Questions?
 
-- Open a [Discussion](https://github.com/yourusername/secure-sftp-vscode/discussions)
+- Open a [Discussion](https://github.com/popchenk/vscode-sftp/discussions)
 - Comment on relevant issues
 - Reach out to maintainers
 
