@@ -1,8 +1,5 @@
 # Secure SFTP for VS Code
 
-[![CI](https://github.com/yourusername/secure-sftp-vscode/workflows/CI/badge.svg)](https://github.com/yourusername/secure-sftp-vscode/actions)
-[![Security Audit](https://github.com/yourusername/secure-sftp-vscode/workflows/Security%20Audit/badge.svg)](https://github.com/yourusername/secure-sftp-vscode/actions)
-
 A VS Code extension that provides **secure** SFTP file transfer capabilities with modern security practices.
 
 ## Why This Extension?
