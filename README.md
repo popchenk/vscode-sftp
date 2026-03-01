@@ -188,4 +188,4 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-**Note**: This extension is in active development. Please report issues on [GitHub](https://github.com/yourusername/secure-sftp-vscode/issues).
+**Note**: This extension is in active development. Please report issues on [GitHub](https://github.com/popchenk/vscode-sftp/issues).
